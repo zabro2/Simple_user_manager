@@ -20,6 +20,7 @@ let userList = [{
     email: 'mike34@gmail.com',
     age: 19
 }];
+let parsableList = 'User List \n';
 let currentEditUser;
 
 app.get('/', (req, res) => {
@@ -36,7 +37,7 @@ app.get('/edit/:uuid', (req, res) => {
     res.render('edit.pug', { currentEditUser });
 });
 
-app.post('/listing', (req, res) => {
+app.post('/newUser', (req, res) => {
     userList.push({
         uuid: `user${Math.floor(Math.random() * 1000)}`,
         userId: req.body.userId,
@@ -44,10 +45,8 @@ app.post('/listing', (req, res) => {
         email: req.body.email,
         age: req.body.age
     });
-    fs.writeFile('/userList.txt', userList, err => {
-        if (err) throw err
-    });
-    res.render('listing');
+    write();
+    res.redirect('/listing');
 });
 
 app.post('/finished', (req, res) => {
@@ -63,6 +62,27 @@ app.post('/finished', (req, res) => {
     res.redirect('/listing');
 });
 
+app.post('/delete/:uuid', (req, res) => {
+    // identifying the user being deleted code here ->
+    let deleteUser = req.params.uuid;
+    console.log(deleteUser);
+    let obj = userList.find(user => user.uuid === deleteUser.uuid);
+    let index = userList.indexOf(obj);
+    userList.splice(index, 1);
+    write();
+    res.redirect('/listing');
+})
+
 app.listen(3000, () => {
     console.log('listening on port 3000');
 });
+
+function write(){
+    parsableList = 'User List \n'
+    userList.forEach(user => {
+        parsableList += `uuid: ${user.uuid} userId: ${user.userId} name: ${user.name} email: ${user.email} age: ${user.age}\n`;
+    });
+    fs.writeFile('./userList.txt', parsableList, err => {
+        if (err) throw err
+    });
+}
