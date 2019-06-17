@@ -66,7 +66,7 @@ app.post('/delete/:uuid', (req, res) => {
     // identifying the user being deleted code here ->
     let deleteUser = req.params.uuid;
     console.log(deleteUser);
-    let obj = userList.find(user => user.uuid === deleteUser.uuid);
+    let obj = userList.find(user => user.uuid === deleteUser);
     let index = userList.indexOf(obj);
     userList.splice(index, 1);
     write();
