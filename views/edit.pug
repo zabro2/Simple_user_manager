@@ -1,0 +1,18 @@
+html
+    body
+        include includes/header.pug
+        form(action="/finished" method="post")
+            div
+                label(for=userId) User ID
+                input(id='userId', name='userId' value=currentEditUser.userId)
+            div
+                label(for=name) Name
+                input(id='name', name='name', type='text' value=currentEditUser.name)
+            div
+                label(for=email) Email
+                input(id='email', name='email', type='email' value=currentEditUser.email)
+            div
+                label(for=age) Age
+                input(id='age', name='age', type='number' value=currentEditUser.age)
+            div
+                input(type='submit')

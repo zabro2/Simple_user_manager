@@ -1,0 +1,21 @@
+html
+    head
+        title= Management
+    body
+        include includes/header.pug
+        form(action="/listing" method="post")
+            div
+                label(for=userId) userId
+                input(id='userId', name='userId')
+            div
+                label(for=name) Name
+                input(id='name', name='name', type='text')
+            div
+                label(for=email) Email
+                input(id='email', name='email', type='email')
+            div
+                label(for=age) age
+                input(id='age', name='age', type='number')
+            div
+                input(type='submit')
+            

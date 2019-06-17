@@ -1,0 +1,6 @@
+html
+    body
+        include includes/header.pug
+        each user in userList
+            p #{user.userId} #{user.name} #{user.email} #{user.age} 
+                a(href='/edit/' + user.uuid) edit
