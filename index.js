@@ -2,25 +2,29 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const fs = require('fs');
+const mongoose = require('mongoose');
+const userSchema = new mongoose.Schema({
+    uuid: String,
+    userId: String,
+    name: String,
+    email: String,
+    age: Number,
+    createdDate: { type: Date, default: Date.now }
+});
+const user = mongoose.model('userCollection', userSchema);
+const port = process.env.PORT || 8080;
+mongoose.connect('mongodb://localhost/userManagement',
+    { useNewUrlParser: true }); // "userManagement" is the db name
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', () => {
+    console.log('db connected');
+});
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-let userList = [{
-    uuid: 'user964',
-    userId: 'hello123',
-    name: 'john',
-    email: 'john@abc.com',
-    age: 30
-},
-{
-    uuid: 'user245',
-    userId: 'mikey12',
-    name: 'mike',
-    email: 'mike34@gmail.com',
-    age: 19
-}];
-let parsableList = 'User List \n';
 let currentEditUser;
 
 app.get('/', (req, res) => {
@@ -28,61 +32,76 @@ app.get('/', (req, res) => {
 });
 
 app.get('/listing', (req, res) => {
-    res.render('listing', { userList });
+    user.find({}, (err, data) => {
+        if (err) throw err;
+        res.render('listing', { data });
+    });
 });
 
 app.get('/edit/:uuid', (req, res) => {
-    temp = userList.filter(user => user.uuid == req.params.uuid);
-    currentEditUser = temp[0];
-    res.render('edit.pug', { currentEditUser });
+    user.findOne({ uuid: req.params.uuid }, (err, data) => {
+        currentEditUser = data.uuid;
+        res.render('edit.pug', { data });
+    });
+});
+
+app.get('/user/:name', (req, res) => {
+    let userName = req.params.name;
+    console.log(`GET /user/:name: ${JSON.stringify(req.params)}`);
+    user.findOne({ name: userName }, (err, data) => {
+        if (err) return console.log(`Oops! ${err}`);
+        console.log(`data -- ${JSON.stringify(data)}`);
+        let returnMsg = `user name : ${userName} email : ${data.email} userId : ${data.userId} age : ${data.age}`;
+        console.log(returnMsg);
+        res.send(returnMsg);
+    });
 });
 
 app.post('/newUser', (req, res) => {
-    userList.push({
-        uuid: `user${Math.floor(Math.random() * 1000)}`,
-        userId: req.body.userId,
-        name: req.body.name,
-        email: req.body.email,
-        age: req.body.age
+    const newUser = new user()
+    newUser.uuid = `user${Math.floor(Math.random() * 1000)}`;
+    newUser.userId = req.body.userId;
+    newUser.name = req.body.name;
+    newUser.email = req.body.email;
+    newUser.age = req.body.age;
+    newUser.save((err, data) => {
+        if (err) {
+            return console.error(err);
+        }
+        console.log(`new user save: ${data}`);
     });
-    write();
     res.redirect('/listing');
 });
 
 app.post('/finished', (req, res) => {
-    let obj = userList.find(user => user.uuid === currentEditUser.uuid);
-    let index = userList.indexOf(obj);
-    userList[index] = {
-        uuid: currentEditUser.uuid,
-        userId: req.body.userId,
-        name: req.body.name,
-        email: req.body.email,
-        age: req.body.age
-    }
-    res.redirect('/listing');
+    console.log(currentEditUser);
+    let matchedName = currentEditUser;
+    let newUserId = req.body.userId;
+    let newName = req.body.name;
+    let newEmail = req.body.email;
+    let newAge = req.body.age;
+    user.findOneAndUpdate({ uuid: matchedName }, { userId: newUserId, name: newName, email: newEmail, age: newAge },
+        { new: true, useFindAndModify: false },
+        (err, data) => {
+            if (err) return console.log(`errer: ${err}`);
+            let returnMsg = `uuid : ${matchedName}, has been updated. new data: ${newUserId, newName, newEmail, newAge}`;
+            console.log(returnMsg);
+            res.redirect('/listing');
+        })
 });
 
 app.post('/delete/:uuid', (req, res) => {
-    // identifying the user being deleted code here ->
     let deleteUser = req.params.uuid;
-    console.log(deleteUser);
-    let obj = userList.find(user => user.uuid === deleteUser.uuid);
-    let index = userList.indexOf(obj);
-    userList.splice(index, 1);
-    write();
-    res.redirect('/listing');
+    user.findOneAndDelete({ uuid: deleteUser }, { useFindAndModify: false },
+        (err, data) => {
+            if (err) throw err;
+            console.log(`${data.name} has been removed`);
+            res.redirect('/listing');
+        }
+    )
 })
 
-app.listen(3000, () => {
-    console.log('listening on port 3000');
+app.listen(port, (err) => {
+    if (err) console.log(err);
+    console.log(`listening on port ${port}`);
 });
-
-function write(){
-    parsableList = 'User List \n'
-    userList.forEach(user => {
-        parsableList += `uuid: ${user.uuid} userId: ${user.userId} name: ${user.name} email: ${user.email} age: ${user.age}\n`;
-    });
-    fs.writeFile('./userList.txt', parsableList, err => {
-        if (err) throw err
-    });
-}

@@ -4,15 +4,15 @@ html
         form(action="/finished" method="post")
             div
                 label(for=userId) User ID
-                input(id='userId', name='userId' value=currentEditUser.userId)
+                input(id='userId', name='userId' value=data.userId)
             div
                 label(for=name) Name
-                input(id='name', name='name', type='text' value=currentEditUser.name)
+                input(id='name', name='name', type='text' value=data.name)
             div
                 label(for=email) Email
-                input(id='email', name='email', type='email' value=currentEditUser.email)
+                input(id='email', name='email', type='email' value=data.email)
             div
                 label(for=age) Age
-                input(id='age', name='age', type='number' value=currentEditUser.age)
+                input(id='age', name='age', type='number' value=data.age)
             div
                 input(type='submit')
