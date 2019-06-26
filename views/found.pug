@@ -1,0 +1,15 @@
+html
+    include includes/head.pug
+    body
+        include includes/header.pug
+        table 
+            tr
+                th User Name
+                th Name
+                th Email
+                th Age
+            tr
+                td #{foundUser.userId}
+                td #{foundUser.name}
+                td #{foundUser.email}
+                td #{foundUser.age}

@@ -26,6 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 let currentEditUser;
+let foundUser;
 
 app.get('/', (req, res) => {
     res.render('new');
@@ -55,6 +56,11 @@ app.get('/user/:name', (req, res) => {
         console.log(returnMsg);
         res.send(returnMsg);
     });
+});
+
+app.get('/found:uuid', (req, res) => {
+    console.log(foundUser);
+    res.render('found', { foundUser })
 });
 
 app.post('/newUser', (req, res) => {
@@ -99,6 +105,15 @@ app.post('/delete/:uuid', (req, res) => {
             res.redirect('/listing');
         }
     )
+});
+
+app.post('/search', (req, res) => {
+    let searchTerm = req.body.search;
+    user.findOne({ name: searchTerm }, (err, data) => {
+        if (err) throw err;
+        foundUser = data;
+        res.redirect('/found' + data.uuid);
+    })
 })
 
 app.listen(port, (err) => {
